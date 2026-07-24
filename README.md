@@ -54,30 +54,12 @@ npm run build
 
 ## 配置
 
-hexo-upload 需要知道你的 Hexo 博客目录路径。有三种方式配置（优先级从高到低）：
-
-### 方式一：环境变量
-
-```bash
-# Windows PowerShell
-$env:HEXO_DIR = "F:\github\myblog"
-
-# macOS / Linux
-export HEXO_DIR=/path/to/your/hexo-blog
-```
-
-### 方式二：Web 管理后台
-
-启动后在「设置」页面中填写 Hexo 博客根目录路径，点击保存。
-
-### 方式三：默认路径
-
-如果未设置，默认使用 `../myblog`（即 hexo-upload 目录同级的 myblog 目录）。
+启动后在「设置」页面中填写 Hexo 博客根目录路径，点击保存即可。
 
 ```
 github/
 ├── hexo-upload/   ← 本项目
-└── myblog/        ← Hexo 博客（默认路径）
+└── myblog/        ← Hexo 博客（默认路径：../myblog）
 ```
 
 ## 使用
