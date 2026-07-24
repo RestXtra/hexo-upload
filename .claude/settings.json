@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" auth login --web 2>&1)",
+      "PowerShell(& \"C:\\\\Program Files\\\\GitHub CLI\\\\gh.exe\" repo create hexo-upload --source f:/github/hexo-upload --public --push --remote origin 2>&1)",
+      "PowerShell(git -C \"f:\\\\github\\\\hexo-upload\" ls-files)",
+      "PowerShell(git -C \"f:\\\\github\\\\hexo-upload\" add README.md)",
+      "PowerShell(git -C \"f:\\\\github\\\\hexo-upload\" commit -m \"Add README with setup and usage docs\")",
+      "PowerShell(git -C \"f:\\\\github\\\\hexo-upload\" push 2>&1)",
+      "PowerShell(git -C \"f:\\\\github\\\\hexo-upload\" commit -m \"Simplify README config section\")",
+      "PowerShell(git -C \"f:\\\\github\\\\hexo-upload\" commit -m \"Fix image upload rendering and organize by article folder\")"
+    ]
+  }
+}

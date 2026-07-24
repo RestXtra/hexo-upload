@@ -72,12 +72,9 @@ function initVditor() {
       url: '/api/upload-image',
       fieldName: 'image',
       multiple: false,
-      success: (editor, msg) => {
-        try {
-          const data = JSON.parse(msg)
-          editor.insertValue(`![](${data.url})`)
-        } catch (e) { /* ignore */ }
-      }
+      // Pass article slug so images are organized by article
+      extraData: { slug: props.slug || '' },
+      // Vditor handles insertion automatically from { code: 0, data: { url } } response
     },
     input: () => {
       if (vditor) emit('content-change', vditor.getValue())

@@ -204,10 +204,31 @@ app.get('/api/tags', (req, res) => {
   res.json([...tags].sort());
 });
 
-app.post('/api/upload-image', upload.single('image'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file' });
-  const url = '/images/' + req.file.filename;
-  res.json({ success: true, url });
+app.post('/api/upload-image', (req, res, next) => {
+  // Determine target subdirectory from article slug
+  const slug = req.body.slug || req.query.slug || '';
+  const articleDir = slug ? slug.replace(/\.md$/, '').replace(/[\\/]/g, '-').replace(/[^a-zA-Z0-9一-鿿_-]/g, '') : '_common';
+
+  // Create dynamic storage for this upload
+  const targetDir = path.join(IMAGES_DIR, articleDir);
+  ensureDir(targetDir);
+
+  const dynamicStorage = multer.diskStorage({
+    destination: (req2, file, cb) => cb(null, targetDir),
+    filename: (req2, file, cb) => {
+      const ext = path.extname(file.originalname) || '.png';
+      const name = Date.now() + '-' + Math.round(Math.random() * 1e6) + ext;
+      cb(null, name);
+    }
+  });
+
+  multer({ storage: dynamicStorage, limits: { fileSize: 20 * 1024 * 1024 } }).single('image')(req, res, (err) => {
+    if (err) return res.status(400).json({ code: 1, msg: err.message, data: null });
+    if (!req.file) return res.status(400).json({ code: 1, msg: 'No file', data: null });
+    const url = `/images/${articleDir}/${req.file.filename}`;
+    // Vditor-native response format for automatic image insertion
+    res.json({ code: 0, msg: '', data: { originalURL: url, url } });
+  });
 });
 
 function readThemeConfig() {
