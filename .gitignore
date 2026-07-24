@@ -2,6 +2,7 @@ node_modules/
 client/dist/
 config.json
 cc-switch/
+.claude/
 .env
 *.log
 .DS_Store
