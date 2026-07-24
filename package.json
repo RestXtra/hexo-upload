@@ -1,0 +1,18 @@
+{
+  "name": "hexo-upload",
+  "version": "1.0.0",
+  "description": "Hexo博客文章管理后台 - 本地Web编辑器，支持富文本+Markdown混合编辑，一键部署",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node start.js",
+    "build": "cd client && npx vite build",
+    "postinstall": "cd client && npm install"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "gray-matter": "^4.0.3",
+    "multer": "^1.4.5-lts.1",
+    "concurrently": "^8.2.2"
+  }
+}

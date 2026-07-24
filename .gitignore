@@ -1,0 +1,7 @@
+node_modules/
+client/dist/
+config.json
+cc-switch/
+.env
+*.log
+.DS_Store
