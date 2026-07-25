@@ -386,12 +386,24 @@ app.post('/api/upload-profile-image', profileUpload.single('image'), (req, res) 
 
 app.post('/api/deploy', (req, res) => {
   try {
-    res.json({ status: 'deploying', message: '开始部署...' });
-    exec('npx hexo clean && npx hexo generate && npx hexo deploy', {
+    res.json({ status: 'deploying', message: '开始一键部署...' });
+
+    const deployScript = [
+      // Step 1: commit source changes to git (master branch)
+      `cd "${HEXO_DIR}" && git add -A`,
+      `cd "${HEXO_DIR}" && git commit -m "deploy: update blog content" || true`,
+      `cd "${HEXO_DIR}" && git push origin master`,
+      // Step 2: build & deploy to GitHub Pages (main branch)
+      `cd "${HEXO_DIR}" && npx hexo clean`,
+      `cd "${HEXO_DIR}" && npx hexo generate`,
+      `cd "${HEXO_DIR}" && npx hexo deploy`
+    ].join(' && ');
+
+    exec(deployScript, {
       cwd: HEXO_DIR, maxBuffer: 1024 * 1024 * 10
     }, (error, stdout, stderr) => {
       if (error) console.error('Deploy failed:', error.message);
-      else console.log('Deploy success:', stdout);
+      else console.log('Full deploy success:\n', stdout);
     });
   } catch (e) { console.error('Deploy error:', e.message); }
 });
@@ -435,12 +447,24 @@ app.get('/api/config', (req, res) => {
 
 app.post('/api/deploy', (req, res) => {
   try {
-    res.json({ status: 'deploying', message: '开始部署...' });
-    exec('npx hexo clean && npx hexo generate && npx hexo deploy', {
+    res.json({ status: 'deploying', message: '开始一键部署...' });
+
+    const deployScript = [
+      // Step 1: commit source changes to git (master branch)
+      `cd "${HEXO_DIR}" && git add -A`,
+      `cd "${HEXO_DIR}" && git commit -m "deploy: update blog content" || true`,
+      `cd "${HEXO_DIR}" && git push origin master`,
+      // Step 2: build & deploy to GitHub Pages (main branch)
+      `cd "${HEXO_DIR}" && npx hexo clean`,
+      `cd "${HEXO_DIR}" && npx hexo generate`,
+      `cd "${HEXO_DIR}" && npx hexo deploy`
+    ].join(' && ');
+
+    exec(deployScript, {
       cwd: HEXO_DIR, maxBuffer: 1024 * 1024 * 10
     }, (error, stdout, stderr) => {
       if (error) console.error('Deploy failed:', error.message);
-      else console.log('Deploy success:', stdout);
+      else console.log('Full deploy success:\n', stdout);
     });
   } catch (e) { console.error('Deploy error:', e.message); }
 });
