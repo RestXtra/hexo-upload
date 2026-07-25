@@ -44,12 +44,49 @@ const iconSpinner = '<svg width="15" height="15" viewBox="0 0 24 24" fill="none"
 let vditor = null
 let ignoreContentWatch = false
 
+// Mutable upload config — updated by watcher when slug changes.
+// Vditor reads options at upload time, so mutating this object works reactively.
+const uploadCfg = {
+  accept: 'image/*',
+  multiple: false,
+  fieldName: 'image',
+  url: '/api/upload-image',
+  extraData: {},
+  // IR mode fallback: Vditor tries DOM-based insertion which can silently
+  // fail (imgElement null). In success we check whether the image URL
+  // actually landed in the content; if not, insert it as markdown text.
+  success: (editor, msg) => {
+    try {
+      const resp = JSON.parse(msg)
+      if (resp.code === 0 && resp.data && resp.data.url) {
+        const url = resp.data.url
+        // Small delay so Vditor's own insertion attempt finishes first
+        setTimeout(() => {
+          const current = vditor.getValue()
+          if (!current.includes(url)) {
+            // Vditor didn't insert — do it ourselves as ![image](url)
+            vditor.insertValue(`![image](${url})`)
+          }
+        }, 50)
+      }
+    } catch (_) { /* ignore parse errors */ }
+  }
+}
+
+function syncUploadSlug(slug) {
+  const s = slug || ''
+  uploadCfg.url = `/api/upload-image?slug=${encodeURIComponent(s)}`
+  uploadCfg.extraData = { slug: s }
+}
+
 function onMetaUpdate(meta) {
   emit('meta-change', meta)
 }
 
 function initVditor() {
   if (vditor) return
+
+  syncUploadSlug(props.slug)
 
   vditor = new window.Vditor('vditor-container', {
     height: '100%',
@@ -67,15 +104,7 @@ function initVditor() {
     preview: {
       hljs: { style: 'github' }
     },
-    upload: {
-      accept: 'image/*',
-      url: '/api/upload-image',
-      fieldName: 'image',
-      multiple: false,
-      // Pass article slug so images are organized by article
-      extraData: { slug: props.slug || '' },
-      // Vditor handles insertion automatically from { code: 0, data: { url } } response
-    },
+    upload: uploadCfg,
     input: () => {
       if (vditor) emit('content-change', vditor.getValue())
     },
@@ -103,6 +132,11 @@ watch(() => props.content, (newContent) => {
       nextTick(() => { ignoreContentWatch = false })
     }
   }
+})
+
+// Keep upload URL and extraData in sync with current article slug
+watch(() => props.slug, (newSlug) => {
+  syncUploadSlug(newSlug)
 })
 
 function getContent() {
