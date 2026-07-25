@@ -218,7 +218,8 @@ async function onModalConfirm() {
       editorContent.value = ''
       editorFrontmatter.value = {}
       await loadPosts()
-      showToast('已删除')
+      showToast('已删除，正在部署到 GitHub Pages...')
+      onDeploy()
     } catch (e) { showToast('删除失败') }
     pendingDeleteSlug = ''
   }
