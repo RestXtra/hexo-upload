@@ -33,6 +33,7 @@
         <template v-if="activeView === 'posts'">
           <button class="btn btn-outline btn-sm" title="预览" @click="onPreview" :disabled="generating" v-html="iconEye" />
           <button class="btn btn-outline btn-sm" title="生成静态文件" @click="onGenerate" :disabled="generating" v-html="generating ? iconSpinner : iconBuild" />
+          <button class="btn btn-outline btn-sm" title="同步源码到 GitHub" @click="onSyncSource" :disabled="syncing" v-html="syncing ? iconSpinner : iconSync" />
         </template>
       </header>
 
@@ -96,7 +97,7 @@ import SettingsPanel from './components/SettingsPanel.vue'
 import Modal from './components/Modal.vue'
 import {
   fetchPosts, fetchPost, createPost, updatePost, deletePost as apiDeletePost,
-  deploySite, generateSite, previewSite, fetchHexoInfo
+  deploySite, generateSite, previewSite, fetchHexoInfo, syncSource
 } from './api.js'
 
 const darkIcon = computed(() => isDark.value
@@ -107,6 +108,7 @@ const iconEye = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" str
 const iconBuild = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><polyline points="16 16 12 12 8 16"/></svg>'
 const iconRocket = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4l.5.5a2.5 2.5 0 0 0 3.5 0z"/><path d="M15 12h5l-.5-.5a2.5 2.5 0 0 0-3.5 0z"/></svg>'
 const iconSpinner = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="animate-spin"><circle cx="12" cy="12" r="10" opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10" opacity="0.75"/></svg>'
+const iconSync = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 12l-4-4-4 4"/><path d="M12 8v8"/></svg>'
 
 const navItems = [
   { id: 'posts', label: '文章', icon: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>' },
@@ -132,6 +134,7 @@ const hexoInfo = ref({})
 const saving = ref(false)
 const saveStatus = ref('')
 const generating = ref(false)
+const syncing = ref(false)
 const toastMsg = ref('')
 
 const editorRef = ref(null)
@@ -239,6 +242,15 @@ async function onDeploy() {
     await deploySite()
     showToast('正在部署到 GitHub Pages...')
   } catch (e) { showToast('部署失败') }
+}
+
+async function onSyncSource() {
+  syncing.value = true
+  try {
+    await syncSource()
+    showToast('源码已推送到 GitHub')
+  } catch (e) { showToast('源码同步失败') }
+  syncing.value = false
 }
 
 function onPreview() {
