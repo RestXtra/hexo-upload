@@ -253,10 +253,38 @@ async function onSyncSource() {
   syncing.value = false
 }
 
-function onPreview() {
-  previewSite()
-  showToast('正在启动预览服务器...')
-  setTimeout(() => { window.open('http://localhost:4000', '_blank') }, 2000)
+async function onPreview() {
+  try {
+    const resp = await previewSite()
+    if (resp.success) {
+      if (resp.alreadyRunning) {
+        showToast('预览服务器已在运行')
+        window.open(resp.url, '_blank')
+      } else if (resp.starting) {
+        showToast('正在启动预览服务器...')
+        // Poll until ready then open
+        let polls = 0
+        const poll = setInterval(async () => {
+          try {
+            const check = await fetch('http://localhost:4000', { mode: 'no-cors' })
+            clearInterval(poll)
+            showToast('预览服务器已启动')
+            window.open(resp.url, '_blank')
+          } catch (e) {
+            polls++
+            if (polls > 20) {
+              clearInterval(poll)
+              showToast('预览服务器启动失败，请检查端口 4000')
+            }
+          }
+        }, 800)
+      } else {
+        window.open(resp.url, '_blank')
+      }
+    } else {
+      showToast(resp.error || '预览启动失败')
+    }
+  } catch (e) { showToast('预览请求失败') }
 }
 
 async function onHexoDirChanged() {

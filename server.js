@@ -1,6 +1,7 @@
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
+const net = require('net');
 const { exec } = require('child_process');
 const matter = require('gray-matter');
 const multer = require('multer');
@@ -423,12 +424,57 @@ app.post('/api/generate', (req, res) => {
 });
 
 app.post('/api/preview', (req, res) => {
-  exec('npx hexo server', {
-    cwd: HEXO_DIR, maxBuffer: 1024 * 1024 * 10
-  }, (error) => {
-    if (error) console.error('Preview error:', error.message);
+  const previewUrl = 'http://localhost:4000';
+
+  // Check if hexo server is already running on port 4000
+  const sock = new net.Socket();
+  sock.setTimeout(800);
+  sock.on('connect', () => {
+    // Already running
+    sock.destroy();
+    res.json({ success: true, url: previewUrl, alreadyRunning: true });
   });
-  res.json({ success: true, url: 'http://localhost:4000' });
+  sock.on('error', () => {
+    // Not running — start it
+    sock.destroy();
+    const child = exec('npx hexo server', {
+      cwd: HEXO_DIR, maxBuffer: 1024 * 1024 * 10
+    }, (error) => {
+      if (error && error.code !== 1) {
+        console.error('Preview error:', error.message);
+      }
+    });
+    // Wait for server to be ready by polling
+    let attempts = 0;
+    const poll = setInterval(() => {
+      attempts++;
+      const check = new net.Socket();
+      check.setTimeout(300);
+      check.on('connect', () => {
+        check.destroy();
+        clearInterval(poll);
+        // If we haven't responded yet, do so
+        if (!res.headersSent) {
+          res.json({ success: true, url: previewUrl });
+        }
+      });
+      check.on('error', () => {
+        check.destroy();
+        if (attempts >= 20) {
+          clearInterval(poll);
+          if (!res.headersSent) {
+            res.json({ success: false, error: 'hexo server 启动超时，请检查端口 4000 是否被占用' });
+          }
+        }
+      });
+      check.connect(4000, '127.0.0.1');
+    }, 500);
+    // Respond right away — frontend will poll
+    if (!res.headersSent) {
+      res.json({ success: true, url: previewUrl, starting: true });
+    }
+  });
+  sock.connect(4000, '127.0.0.1');
 });
 
 app.get('/api/hexo-info', (req, res) => {
