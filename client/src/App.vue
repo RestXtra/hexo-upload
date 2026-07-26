@@ -33,7 +33,8 @@
         <template v-if="activeView === 'posts'">
           <button class="btn btn-outline btn-sm" title="预览" @click="onPreview" :disabled="generating" v-html="iconEye" />
           <button class="btn btn-outline btn-sm" title="生成静态文件" @click="onGenerate" :disabled="generating" v-html="generating ? iconSpinner : iconBuild" />
-          <button class="btn btn-outline btn-sm" title="同步源码到 GitHub" @click="onSyncSource" :disabled="syncing" v-html="syncing ? iconSpinner : iconSync" />
+          <button class="btn btn-outline btn-sm" title="同步源码" @click="onSyncSource" :disabled="syncing" v-html="syncing ? iconSpinner : iconSync" />
+          <button class="btn btn-primary btn-sm" title="一键部署：源码 + 生成 + 上线" @click="onFullDeploy" :disabled="fullDeploying" v-html="fullDeploying ? iconSpinner : iconRocket" />
         </template>
       </header>
 
@@ -97,7 +98,7 @@ import SettingsPanel from './components/SettingsPanel.vue'
 import Modal from './components/Modal.vue'
 import {
   fetchPosts, fetchPost, createPost, updatePost, deletePost as apiDeletePost,
-  deploySite, generateSite, previewSite, fetchHexoInfo, syncSource
+  deploySite, generateSite, previewSite, fetchHexoInfo, syncSource, fullDeploy
 } from './api.js'
 
 const darkIcon = computed(() => isDark.value
@@ -135,6 +136,7 @@ const saving = ref(false)
 const saveStatus = ref('')
 const generating = ref(false)
 const syncing = ref(false)
+const fullDeploying = ref(false)
 const toastMsg = ref('')
 
 const editorRef = ref(null)
@@ -251,6 +253,15 @@ async function onSyncSource() {
     showToast('源码已推送到 GitHub')
   } catch (e) { showToast('源码同步失败') }
   syncing.value = false
+}
+
+async function onFullDeploy() {
+  fullDeploying.value = true
+  try {
+    await fullDeploy()
+    showToast('全流程部署已启动：源码 → 生成 → 上线')
+  } catch (e) { showToast('全流程部署失败') }
+  setTimeout(() => { fullDeploying.value = false }, 3000)
 }
 
 async function onPreview() {

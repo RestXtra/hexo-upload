@@ -55,6 +55,11 @@ export async function syncSource() {
   return res.json()
 }
 
+export async function fullDeploy() {
+  const res = await fetch(`${API_BASE}/full-deploy`, { method: 'POST' })
+  return res.json()
+}
+
 export async function generateSite() {
   const res = await fetch(`${API_BASE}/generate`, { method: 'POST' })
   return res.json()

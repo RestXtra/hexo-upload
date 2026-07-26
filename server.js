@@ -414,6 +414,26 @@ app.post('/api/sync-source', (req, res) => {
   } catch (e) { console.error('Source sync error:', e.message); }
 });
 
+app.post('/api/full-deploy', (req, res) => {
+  try {
+    res.json({ status: 'deploying', message: '开始全流程部署...' });
+    const fullScript = [
+      `cd "${HEXO_DIR}" && git add -A`,
+      `cd "${HEXO_DIR}" && git commit -m "deploy: full pipeline" || true`,
+      `cd "${HEXO_DIR}" && git push origin master`,
+      `cd "${HEXO_DIR}" && npx hexo clean`,
+      `cd "${HEXO_DIR}" && npx hexo generate`,
+      `cd "${HEXO_DIR}" && npx hexo deploy`
+    ].join(' && ');
+    exec(fullScript, {
+      cwd: HEXO_DIR, maxBuffer: 1024 * 1024 * 10
+    }, (error, stdout, stderr) => {
+      if (error) console.error('Full deploy failed:', error.message);
+      else console.log('Full deploy success:\n', stdout);
+    });
+  } catch (e) { console.error('Full deploy error:', e.message); }
+});
+
 app.post('/api/generate', (req, res) => {
   exec('npx hexo clean && npx hexo generate', {
     cwd: HEXO_DIR, maxBuffer: 1024 * 1024 * 10
