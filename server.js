@@ -416,7 +416,6 @@ app.post('/api/sync-source', (req, res) => {
 
 app.post('/api/full-deploy', (req, res) => {
   try {
-    res.json({ status: 'deploying', message: '开始全流程部署...' });
     const fullScript = [
       `cd "${HEXO_DIR}" && git add -A`,
       `cd "${HEXO_DIR}" && git commit -m "deploy: full pipeline" || true`,
@@ -428,10 +427,23 @@ app.post('/api/full-deploy', (req, res) => {
     exec(fullScript, {
       cwd: HEXO_DIR, maxBuffer: 1024 * 1024 * 10
     }, (error, stdout, stderr) => {
-      if (error) console.error('Full deploy failed:', error.message);
-      else console.log('Full deploy success:\n', stdout);
+      if (error) {
+        console.error('Full deploy failed:', error.message);
+        console.error('Stderr:', stderr);
+        if (!res.headersSent) {
+          res.status(500).json({ success: false, error: error.message, detail: stderr });
+        }
+      } else {
+        console.log('Full deploy success:\n', stdout);
+        if (!res.headersSent) {
+          res.json({ success: true, message: '全流程部署完成' });
+        }
+      }
     });
-  } catch (e) { console.error('Full deploy error:', e.message); }
+  } catch (e) {
+    console.error('Full deploy error:', e.message);
+    if (!res.headersSent) res.status(500).json({ success: false, error: e.message });
+  }
 });
 
 app.post('/api/generate', (req, res) => {

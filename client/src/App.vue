@@ -257,11 +257,16 @@ async function onSyncSource() {
 
 async function onFullDeploy() {
   fullDeploying.value = true
+  showToast('全流程部署中...')
   try {
-    await fullDeploy()
-    showToast('全流程部署已启动：源码 → 生成 → 上线')
-  } catch (e) { showToast('全流程部署失败') }
-  setTimeout(() => { fullDeploying.value = false }, 3000)
+    const resp = await fullDeploy()
+    if (resp.success) {
+      showToast('部署完成！源码 + 网站已同步')
+    } else {
+      showToast('部署失败：' + (resp.error || '未知错误'))
+    }
+  } catch (e) { showToast('部署失败：' + e.message) }
+  fullDeploying.value = false
 }
 
 async function onPreview() {
