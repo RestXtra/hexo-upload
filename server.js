@@ -402,7 +402,7 @@ app.post('/api/sync-source', (req, res) => {
     res.json({ status: 'syncing', message: '开始同步源码...' });
     const syncScript = [
       `cd "${HEXO_DIR}" && git add -A`,
-      `cd "${HEXO_DIR}" && git commit -m "deploy: update blog source" || true`,
+      `cd "${HEXO_DIR}" && git commit -m "deploy: update blog source" || rem`,
       `cd "${HEXO_DIR}" && git push origin master`
     ].join(' && ');
     exec(syncScript, {
@@ -418,7 +418,7 @@ app.post('/api/full-deploy', (req, res) => {
   try {
     const fullScript = [
       `cd "${HEXO_DIR}" && git add -A`,
-      `cd "${HEXO_DIR}" && git commit -m "deploy: full pipeline" || true`,
+      `cd "${HEXO_DIR}" && git commit -m "deploy: full pipeline" || rem`,
       `cd "${HEXO_DIR}" && git push origin master`,
       `cd "${HEXO_DIR}" && npx hexo clean`,
       `cd "${HEXO_DIR}" && npx hexo generate`,
