@@ -434,7 +434,9 @@ app.post('/api/full-deploy', (req, res) => {
           res.status(500).json({ success: false, error: error.message, detail: stderr });
         }
       } else {
-        console.log('Full deploy success:\n', stdout);
+        console.log('--- Full deploy stdout ---\n' + stdout);
+        if (stderr) console.log('--- Full deploy stderr ---\n' + stderr);
+        console.log('=== Full deploy completed ===');
         if (!res.headersSent) {
           res.json({ success: true, message: '全流程部署完成' });
         }
